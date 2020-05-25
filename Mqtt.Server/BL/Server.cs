@@ -89,13 +89,13 @@ namespace com.b_velop.Mqtt.Server.BL
 
             var optionsBuilder = new MqttServerOptionsBuilder()
                 .WithDefaultEndpoint()
-                .WithDefaultEndpointPort(1831)
+                .WithDefaultEndpointPort(port)
                 .WithStorage(_storage)
                 .WithPersistentSessions()
                 .WithConnectionBacklog(15)
-                .WithEncryptionSslProtocol(SslProtocols.Tls)
-                .WithEncryptedEndpoint()
-                .WithEncryptedEndpointPort(port)
+                //.WithEncryptionSslProtocol(SslProtocols.Tls)
+                //.WithEncryptedEndpoint()
+                //.WithEncryptedEndpointPort(port)
                 .WithConnectionValidator(context =>
                 {
                     var currentUser = us.FirstOrDefault(u => u.Username == context.Username);
