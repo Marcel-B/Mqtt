@@ -16,10 +16,12 @@ namespace ConsoleApp1
             var factory = new  MqttFactory();
             var l = factory.CreateMqttClient();
             var opt = new MqttClientOptions();
+            
+            opt.ClientId = "LocalTestClient";
             opt.ChannelOptions = new MqttClientTcpOptions
             {
-Port = 1883,
-Server = "localhost"
+                Port = 8883,
+                Server = "localhost",
             };
             opt.Credentials = new MqttClientCredentials
             {
@@ -28,11 +30,11 @@ Server = "localhost"
             };
 
             var result = await l.ConnectAsync(opt, CancellationToken.None);
-            Console.WriteLine(result.ReasonString);
-            Console.WriteLine(l.IsConnected);
+
             var mssg = new MqttApplicationMessageBuilder();
+            mssg.WithRetainFlag(true);
            var la = mssg.WithPayload("Hello from Client sowieso")
-                .WithTopic("foo")
+                .WithTopic("test/nuc/message")
                 .Build();
            var response = await l.PublishAsync(la, CancellationToken.None);
            Console.WriteLine(response.ReasonString);
