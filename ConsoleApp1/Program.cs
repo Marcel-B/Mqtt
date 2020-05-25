@@ -21,7 +21,12 @@ namespace ConsoleApp1
             opt.ChannelOptions = new MqttClientTcpOptions
             {
                 Port = 8883,
-                Server = "localhost",
+                TlsOptions = new MqttClientTlsOptions
+                {
+                    AllowUntrustedCertificates = true,
+                    UseTls = true,
+                },
+                Server = "mqtt.qaybe.de",
             };
             opt.Credentials = new MqttClientCredentials
             {

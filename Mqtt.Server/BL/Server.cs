@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Authentication;
 using System.Text;
 using System.Threading.Tasks;
 using com.b_velop.Mqtt.Server.Models;
@@ -78,6 +79,7 @@ namespace com.b_velop.Mqtt.Server.BL
         {
             if (!int.TryParse(_configuration["Settings:Port"], out var port))
                 port = 1833;
+            
             var us = users.ToList();
             if (us.Count == 0)
             {
@@ -87,10 +89,13 @@ namespace com.b_velop.Mqtt.Server.BL
 
             var optionsBuilder = new MqttServerOptionsBuilder()
                 .WithDefaultEndpoint()
-                .WithDefaultEndpointPort(port)
+                .WithDefaultEndpointPort(1831)
                 .WithStorage(_storage)
                 .WithPersistentSessions()
                 .WithConnectionBacklog(15)
+                .WithEncryptionSslProtocol(SslProtocols.Tls)
+                .WithEncryptedEndpoint()
+                .WithEncryptedEndpointPort(port)
                 .WithConnectionValidator(context =>
                 {
                     var currentUser = us.FirstOrDefault(u => u.Username == context.Username);
