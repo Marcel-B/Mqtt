@@ -24,6 +24,8 @@ namespace com.b_velop.Mqtt.Server
                     services.AddSingleton<IMqttServerOptions, MqttServerOptions>();
                     services.AddSingleton<IMqttServerFactory, MqttFactory>();
                     services.AddSingleton<IMqttServerStorage, AwsomeStorage>();
+                    services.AddSingleton<IMqttServerSubscriptionInterceptor, Interceptor>();
+                    services.AddSingleton<IMqttServerApplicationMessageInterceptor, MessageInterceptor>();
                     services.AddSingleton<BL.IServer, BL.Server>();
                     services.AddHostedService<MqttService>();
                 })

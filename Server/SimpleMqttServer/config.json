@@ -1,9 +1,0 @@
-{
-  "Port": 8883,
-  "Users": [
-    {
-      "UserName": "Hans",
-      "Password": "Test"
-    }
-  ]
-}

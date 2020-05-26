@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using MQTTnet;
 using MQTTnet.Client.Options;
 
-namespace ConsoleApp1
+namespace com.b_velop.Mqtt.Client
 {
     class Program
     {

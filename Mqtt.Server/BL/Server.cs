@@ -52,7 +52,7 @@ namespace com.b_velop.Mqtt.Server.BL
     public interface IServer
     {
         IMqttServer GetServer();
-        public MqttServerOptionsBuilder GetOptionsBuilder(IEnumerable<User> users);
+        public MqttServerOptionsBuilder GetOptionsBuilder(IEnumerable<User> users, IMqttServerSubscriptionInterceptor interceptor, IMqttServerApplicationMessageInterceptor messageInterceptor);
     }
 
     public class Server : IServer
@@ -75,7 +75,9 @@ namespace com.b_velop.Mqtt.Server.BL
         }
 
         public MqttServerOptionsBuilder GetOptionsBuilder(
-            IEnumerable<User> users)
+            IEnumerable<User> users,
+            IMqttServerSubscriptionInterceptor interceptor, 
+            IMqttServerApplicationMessageInterceptor messageInterceptor)
         {
             if (!int.TryParse(_configuration["Settings:Port"], out var port))
                 port = 1833;
@@ -103,46 +105,35 @@ namespace com.b_velop.Mqtt.Server.BL
                     if (currentUser == null)
                     {
                         context.ReasonCode = MqttConnectReasonCode.BadUserNameOrPassword;
-                        LogMessage(context, true);
+                        LogMessage(context);
                         return;
                     }
 
                     if (context.Username != currentUser.Username)
                     {
                         context.ReasonCode = MqttConnectReasonCode.BadUserNameOrPassword;
-                        LogMessage(context, true);
+                        LogMessage(context);
                         return;
                     }
 
                     if (context.Password != currentUser.Password)
                     {
                         context.ReasonCode = MqttConnectReasonCode.BadUserNameOrPassword;
-                        LogMessage(context, true);
+                        LogMessage(context);
                         return;
                     }
 
                     context.ReasonCode = MqttConnectReasonCode.Success;
-                    LogMessage(context, false);
-                });
+                    LogMessage(context);
+                }).WithSubscriptionInterceptor(interceptor)
+                .WithApplicationMessageInterceptor(messageInterceptor);;
             return optionsBuilder;
         }
 
         public IMqttServer GetServer()
             => _factory.CreateMqttServer();
 
-        private void LogMessage(MqttSubscriptionInterceptorContext context, bool successful)
-        {
-            if (context == null)
-            {
-                return;
-            }
-
-            _logger.LogInformation(successful
-                ? $"New subscription: ClientId = {context.ClientId}, TopicFilter = {context.TopicFilter}"
-                : $"Subscription failed for clientId = {context.ClientId}, TopicFilter = {context.TopicFilter}");
-        }
-        
-        private void LogMessage(MqttConnectionValidatorContext context, bool showPassword)
+        private void LogMessage(MqttConnectionValidatorContext context, bool showPassword = false)
         {
             if (context == null)
             {

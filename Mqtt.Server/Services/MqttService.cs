@@ -9,23 +9,73 @@ using com.b_velop.Mqtt.Server.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using MQTTnet;
 using MQTTnet.Server;
 using NLog.Fluent;
 
 namespace com.b_velop.Mqtt.Server.Services
 {
+    public class MessageInterceptor : IMqttServerApplicationMessageInterceptor
+    {
+        private readonly ILogger<MessageInterceptor> _logger;
+
+        public MessageInterceptor(ILogger<MessageInterceptor> logger)
+        {
+            _logger = logger;
+        }
+        public Task InterceptApplicationMessagePublishAsync(MqttApplicationMessageInterceptorContext context)
+        {
+            context.AcceptPublish = true;
+            var payload = context.ApplicationMessage?.Payload == null ? null : Encoding.UTF8.GetString(context.ApplicationMessage?.Payload);
+            _logger.LogInformation(
+                $"Message: ClientId = {context.ClientId}, Topic = {context.ApplicationMessage?.Topic},"
+                + $" Payload = {payload}, QoS = {context.ApplicationMessage?.QualityOfServiceLevel},"
+                + $" Retain-Flag = {context.ApplicationMessage?.Retain}");
+            return Task.CompletedTask;
+        }
+    }
+    
+    public class Interceptor : IMqttServerSubscriptionInterceptor
+    {
+        private readonly ILogger<Interceptor> _logger;
+
+        public Interceptor(ILogger<Interceptor> logger)
+        {
+            _logger = logger;
+        }
+        
+        public Task InterceptSubscriptionAsync(
+            MqttSubscriptionInterceptorContext context)
+        {
+            if (context == null)
+            {
+                return Task.CompletedTask;
+            }
+
+            context.AcceptSubscription = true;
+            _logger.LogInformation($"New subscription: ClientId = {context.ClientId}, TopicFilter = {context.TopicFilter}");
+            return Task.CompletedTask;
+        }
+    }
+    
     public class MqttService : IHostedService
     {
         private readonly ILogger<MqttService> _logger;
+        private readonly IMqttServerSubscriptionInterceptor _interceptor;
+        private readonly IMqttServerApplicationMessageInterceptor _messageInterceptor;
         private readonly IServiceProvider _serviceProvider;
         private readonly IHostApplicationLifetime _appLifetime;
 
         public MqttService(
             ILogger<MqttService> logger,
+            IMqttServerSubscriptionInterceptor interceptor,
+            IMqttServerApplicationMessageInterceptor messageInterceptor,
             IServiceProvider serviceProvider,
             IHostApplicationLifetime appLifetime)
         {
             _logger = logger;
+            _interceptor = interceptor;
+            _messageInterceptor = messageInterceptor;
             _serviceProvider = serviceProvider;
             _appLifetime = appLifetime;
         }
@@ -38,28 +88,8 @@ namespace com.b_velop.Mqtt.Server.Services
             _appLifetime.ApplicationStopped.Register(OnStopped);
             using var scope = _serviceProvider.CreateScope();
             var serverBuilder = scope.ServiceProvider.GetRequiredService<BL.IServer>();
-            var options = serverBuilder.GetOptionsBuilder(new List<User>());
-            options.WithSubscriptionInterceptor(
-            c =>
-            {
-                c.AcceptSubscription = true;
-                 LogMessage(c, true);
-            }).WithApplicationMessageInterceptor(
-                context =>
-            {
-                context.AcceptPublish = true;
-                if (context == null)
-                {
-                    return;
-                }
+            var options = serverBuilder.GetOptionsBuilder(new List<User>(), _interceptor, _messageInterceptor);
 
-                var payload = context.ApplicationMessage?.Payload == null ? null : Encoding.UTF8.GetString(context.ApplicationMessage?.Payload);
-
-                _logger.LogInformation(
-                    $"Message: ClientId = {context.ClientId}, Topic = {context.ApplicationMessage?.Topic},"
-                    + $" Payload = {payload}, QoS = {context.ApplicationMessage?.QualityOfServiceLevel},"
-                    + $" Retain-Flag = {context.ApplicationMessage?.Retain}");
-            });
             var server = serverBuilder.GetServer();
             await server.StartAsync(options.Build());
         }
