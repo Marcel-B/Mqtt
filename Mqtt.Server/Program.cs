@@ -57,7 +57,7 @@ namespace com.b_velop.Mqtt.Server
                         var host = sp.GetSecret("host");
                         var username = sp.GetSecret("username");
                         var port = sp.GetSecret("port");
-                        var pw = sp.GetSecret("sec_postgres_mqtt");
+                        var pw = sp.GetSecret("postgres_db_password");
                         connectionString = $"Host={host};Port={port};Username={username};Password={pw};Database={db};";
                     }
                     services.AddDbContext<DataContext>(options =>
