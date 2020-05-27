@@ -1,9 +1,10 @@
 ﻿using System.Threading.Tasks;
+using com.b_velop.Mqtt.Application.Contracts;
+using com.b_velop.Mqtt.Application.Services;
+using com.b_velop.Mqtt.Application.Services.Hosted;
 using com.b_velop.Mqtt.Context;
 using com.b_velop.Mqtt.Data.Contracts;
 using com.b_velop.Mqtt.Data.Repositories;
-using com.b_velop.Mqtt.Server.BL;
-using com.b_velop.Mqtt.Server.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -19,6 +20,10 @@ namespace com.b_velop.Mqtt.Server
         static async Task Main(string[] args)
         {
             var host = CreateHostBuilder(args).Build();
+            var context = host.Services.GetRequiredService<DataContext>();
+            context.Database.Migrate();
+            context.SaveChanges();
+            Storage.Seed(context);
             await host.RunAsync();
         }
 
@@ -27,12 +32,13 @@ namespace com.b_velop.Mqtt.Server
                 {
                     services.AddSingleton<IMqttServerOptions, MqttServerOptions>();
                     services.AddSingleton<IMqttServerFactory, MqttFactory>();
-                    services.AddSingleton<IMqttServerStorage, AwesomeStorage>();
-                    services.AddSingleton<IMqttServerSubscriptionInterceptor, Interceptor>();
-                    services.AddSingleton<IMqttServerApplicationMessageInterceptor, MessageInterceptor>();
-                    services.AddSingleton<BL.IServer, BL.Server>();
+                    services.AddSingleton<IMqttServerStorage, MqttStorage>();
+                    services.AddSingleton<IMqttServerSubscriptionInterceptor, MqttServerSubscriptionInterceptor>();
+                    services.AddSingleton<IMqttServerApplicationMessageInterceptor, MqttServerApplicationMessageInterceptor>();
+                    services.AddSingleton<IMqttServerConnectionValidator, MqttServerConnectionValidator>();
+                    services.AddSingleton<IServerBuilder, ServerBuilder>();
                     services.AddScoped<IMqttRepository, MqttRepository>();
-                    services.AddDbContext<DataContext>(options => options.UseInMemoryDatabase("MqttBase"));
+                    services.AddDbContext<DataContext>(options => options.UseNpgsql("Host=localhost;Port=5432;Username=postgres;Password=password;Database=MqttBase;"));
                     services.AddHostedService<MqttService>();
                 })
                 .ConfigureLogging(

@@ -1,23 +1,21 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using com.b_velop.Mqtt.Server.Models;
+using com.b_velop.Mqtt.Data.Contracts;
 using Microsoft.Extensions.Logging;
 using MQTTnet.Protocol;
 using MQTTnet.Server;
 
-namespace com.b_velop.Mqtt.Server.Services
+namespace com.b_velop.Mqtt.Application.Services
 {
-    public class ConnectionValidator : IMqttServerConnectionValidator
+    public class MqttServerConnectionValidator: IMqttServerConnectionValidator
     {
-        private readonly IEnumerable<User> _users;
-        private readonly ILogger<ConnectionValidator> _logger;
+        private readonly IMqttRepository _repo;
+        private readonly ILogger<MqttServerConnectionValidator> _logger;
 
-        public ConnectionValidator(
-            IEnumerable<User> users,
-            ILogger<ConnectionValidator> logger)
+        public MqttServerConnectionValidator(
+            IMqttRepository repo,
+            ILogger<MqttServerConnectionValidator> logger)
         {
-            _users = users;
+            _repo = repo;
             _logger = logger;
         }
         
@@ -25,7 +23,7 @@ namespace com.b_velop.Mqtt.Server.Services
             MqttConnectionValidatorContext context)
         {
             
-            var currentUser = _users.FirstOrDefault(u => u.Username == context.Username);
+            var currentUser = _repo.GetUser(context.Username);
 
             if (currentUser == null)
             {

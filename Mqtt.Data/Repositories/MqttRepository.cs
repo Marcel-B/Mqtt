@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using com.b_velop.Mqtt.Context;
 using com.b_velop.Mqtt.Data.Contracts;
@@ -29,5 +31,15 @@ namespace com.b_velop.Mqtt.Data.Repositories
 
         public bool SaveChanges()
             => _context.SaveChanges() > 0;
+
+        public Guid AddMessage(MqttMessage message)
+        {
+            return _context.MqttMessages.Add(message).Entity.Id;
+        }
+
+        public IEnumerable<MqttMessage> GetMessages()
+        {
+            return _context.MqttMessages.ToList();
+        }
     }
 }

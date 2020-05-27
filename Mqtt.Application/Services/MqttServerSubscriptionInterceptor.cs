@@ -2,13 +2,13 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MQTTnet.Server;
 
-namespace com.b_velop.Mqtt.Server.Services
+namespace com.b_velop.Mqtt.Application.Services
 {
-    public class Interceptor : IMqttServerSubscriptionInterceptor
+    public class MqttServerSubscriptionInterceptor : IMqttServerSubscriptionInterceptor
     {
-        private readonly ILogger<Interceptor> _logger;
+        private readonly ILogger<MqttServerSubscriptionInterceptor> _logger;
 
-        public Interceptor(ILogger<Interceptor> logger)
+        public MqttServerSubscriptionInterceptor(ILogger<MqttServerSubscriptionInterceptor> logger)
         {
             _logger = logger;
         }

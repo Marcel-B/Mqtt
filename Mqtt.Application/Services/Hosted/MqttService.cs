@@ -1,18 +1,13 @@
 using System;
-using System.Collections.Generic;
-using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
-using com.b_velop.Mqtt.Server.BL;
-using com.b_velop.Mqtt.Server.Models;
+using com.b_velop.Mqtt.Application.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using MQTTnet;
 using MQTTnet.Server;
-using NLog.Fluent;
 
-namespace com.b_velop.Mqtt.Server.Services
+namespace com.b_velop.Mqtt.Application.Services.Hosted
 {
     public class MqttService : IHostedService
     {
@@ -42,10 +37,10 @@ namespace com.b_velop.Mqtt.Server.Services
             _appLifetime.ApplicationStarted.Register(OnStarted);
             _appLifetime.ApplicationStopping.Register(OnStopping);
             _appLifetime.ApplicationStopped.Register(OnStopped);
+            
             using var scope = _serviceProvider.CreateScope();
-            var serverBuilder = scope.ServiceProvider.GetRequiredService<BL.IServer>();
-            var options = serverBuilder.GetOptionsBuilder(new List<User>(), _interceptor, _messageInterceptor);
-
+            var serverBuilder = scope.ServiceProvider.GetRequiredService<IServerBuilder>();
+            var options = serverBuilder.GetOptionsBuilder( _interceptor, _messageInterceptor);
             var server = serverBuilder.GetServer();
             await server.StartAsync(options.Build());
         }
