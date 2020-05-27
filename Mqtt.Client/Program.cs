@@ -21,12 +21,14 @@ namespace com.b_velop.Mqtt.Client
             opt.ChannelOptions = new MqttClientTcpOptions
             {
                 Port = 8883,
-                TlsOptions = new MqttClientTlsOptions
-                {
-                    AllowUntrustedCertificates = true,
-                    UseTls = true,
-                },
-                Server = "mqtt.qaybe.de",
+                // TlsOptions = new MqttClientTlsOptions
+                // {
+                //     AllowUntrustedCertificates = true,
+                //     UseTls = true,
+                // },
+                Server = "localhost",
+                // Server = "mqtt.qaybe.de",
+
             };
             opt.Credentials = new MqttClientCredentials
             {

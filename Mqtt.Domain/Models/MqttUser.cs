@@ -1,6 +1,6 @@
-namespace com.b_velop.Mqtt.Server.Models
+namespace com.b_velop.Mqtt.Domain.Models
 {
-    public class User
+    public class MqttUser
     {
         public string Username { get; set; }
         public string Password { get; set; }

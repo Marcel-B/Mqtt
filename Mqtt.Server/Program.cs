@@ -1,6 +1,14 @@
-﻿using System.Threading.Tasks;
-using com.b_velop.Mqtt.Server.BL;
-using com.b_velop.Mqtt.Server.Services;
+﻿using System;
+using System.Threading.Tasks;
+using com.b_velop.Mqtt.Application.Contracts;
+using com.b_velop.Mqtt.Application.Services;
+using com.b_velop.Mqtt.Application.Services.Hosted;
+using com.b_velop.Mqtt.Context;
+using com.b_velop.Mqtt.Data.Contracts;
+using com.b_velop.Mqtt.Data.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -15,18 +23,45 @@ namespace com.b_velop.Mqtt.Server
         static async Task Main(string[] args)
         {
             var host = CreateHostBuilder(args).Build();
+            var context = host.Services.GetRequiredService<DataContext>();
+            context.Database.Migrate();
+            context.SaveChanges();
+            Storage.Seed(context);
             await host.RunAsync();
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args)
             => Host.CreateDefaultBuilder(args).ConfigureServices((hostContext, services) =>
                 {
+                    var configuration = hostContext.Configuration;
                     services.AddSingleton<IMqttServerOptions, MqttServerOptions>();
                     services.AddSingleton<IMqttServerFactory, MqttFactory>();
-                    services.AddSingleton<IMqttServerStorage, AwsomeStorage>();
-                    services.AddSingleton<IMqttServerSubscriptionInterceptor, Interceptor>();
-                    services.AddSingleton<IMqttServerApplicationMessageInterceptor, MessageInterceptor>();
-                    services.AddSingleton<BL.IServer, BL.Server>();
+                    services.AddSingleton<IMqttServerStorage, MqttStorage>();
+                    services.AddSingleton<IMqttServerSubscriptionInterceptor, MqttServerSubscriptionInterceptor>();
+                    services
+                        .AddSingleton<IMqttServerApplicationMessageInterceptor, MqttServerApplicationMessageInterceptor
+                        >();
+                    services.AddSingleton<IMqttServerConnectionValidator, MqttServerConnectionValidator>();
+                    services.AddSingleton<IServerBuilder, ServerBuilder>();
+                    services.AddScoped<IMqttRepository, MqttRepository>();
+                    ISecretProvider sp = new SecretProvider();
+                    services.AddSingleton(sp);
+                    var connectionString = string.Empty;
+                    if (hostContext.HostingEnvironment.IsDevelopment())
+                    {
+                        connectionString = configuration.GetConnectionString("postgres");
+                    }
+                    else
+                    {
+                        var db = sp.GetSecret("database");
+                        var host = sp.GetSecret("host");
+                        var username = sp.GetSecret("username");
+                        var port = sp.GetSecret("port");
+                        var pw = sp.GetSecret("sec_postgres_mqtt");
+                        connectionString = $"Host={host};Port={port};Username={username};Password={pw};Database={db};";
+                    }
+                    services.AddDbContext<DataContext>(options =>
+                        options.UseNpgsql(connectionString));
                     services.AddHostedService<MqttService>();
                 })
                 .ConfigureLogging(
