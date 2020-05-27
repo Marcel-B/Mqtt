@@ -5,14 +5,14 @@ FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 WORKDIR /src
 
 # Copy only API for restore packages
-COPY ["Mqtt.Server.csproj", "Mqtt.Server/"]
+COPY ["Mqtt.Server/Mqtt.Server.csproj", "Mqtt.Server/"]
 
 # Restore packages
 RUN dotnet restore "Mqtt.Server/Mqtt.Server.csproj"
 
 
 # Copy rest of the Project
-COPY . ./Mqtt.Server/
+COPY . .
 
 # Build API
 WORKDIR "/src/Mqtt.Server"
