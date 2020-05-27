@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using com.b_velop.Mqtt.Application.Contracts;
 using com.b_velop.Mqtt.Application.Services;
 using com.b_velop.Mqtt.Application.Services.Hosted;
@@ -6,6 +7,8 @@ using com.b_velop.Mqtt.Context;
 using com.b_velop.Mqtt.Data.Contracts;
 using com.b_velop.Mqtt.Data.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -30,15 +33,35 @@ namespace com.b_velop.Mqtt.Server
         private static IHostBuilder CreateHostBuilder(string[] args)
             => Host.CreateDefaultBuilder(args).ConfigureServices((hostContext, services) =>
                 {
+                    var configuration = hostContext.Configuration;
                     services.AddSingleton<IMqttServerOptions, MqttServerOptions>();
                     services.AddSingleton<IMqttServerFactory, MqttFactory>();
                     services.AddSingleton<IMqttServerStorage, MqttStorage>();
                     services.AddSingleton<IMqttServerSubscriptionInterceptor, MqttServerSubscriptionInterceptor>();
-                    services.AddSingleton<IMqttServerApplicationMessageInterceptor, MqttServerApplicationMessageInterceptor>();
+                    services
+                        .AddSingleton<IMqttServerApplicationMessageInterceptor, MqttServerApplicationMessageInterceptor
+                        >();
                     services.AddSingleton<IMqttServerConnectionValidator, MqttServerConnectionValidator>();
                     services.AddSingleton<IServerBuilder, ServerBuilder>();
                     services.AddScoped<IMqttRepository, MqttRepository>();
-                    services.AddDbContext<DataContext>(options => options.UseNpgsql("Host=localhost;Port=5432;Username=postgres;Password=password;Database=MqttBase;"));
+                    ISecretProvider sp = new SecretProvider();
+                    services.AddSingleton(sp);
+                    var connectionString = string.Empty;
+                    if (hostContext.HostingEnvironment.IsDevelopment())
+                    {
+                        connectionString = configuration.GetConnectionString("postgres");
+                    }
+                    else
+                    {
+                        var db = sp.GetSecret("database");
+                        var host = sp.GetSecret("host");
+                        var username = sp.GetSecret("username");
+                        var port = sp.GetSecret("port");
+                        var pw = sp.GetSecret("sec_postgres_mqtt");
+                        connectionString = $"Host={host};Port={port};Username={username};Password={pw};Database={db};";
+                    }
+                    services.AddDbContext<DataContext>(options =>
+                        options.UseNpgsql(connectionString));
                     services.AddHostedService<MqttService>();
                 })
                 .ConfigureLogging(
