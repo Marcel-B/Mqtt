@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Mime;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using com.b_velop.Mqtt.Server.BL;
@@ -15,49 +14,6 @@ using NLog.Fluent;
 
 namespace com.b_velop.Mqtt.Server.Services
 {
-    public class MessageInterceptor : IMqttServerApplicationMessageInterceptor
-    {
-        private readonly ILogger<MessageInterceptor> _logger;
-
-        public MessageInterceptor(ILogger<MessageInterceptor> logger)
-        {
-            _logger = logger;
-        }
-        public Task InterceptApplicationMessagePublishAsync(MqttApplicationMessageInterceptorContext context)
-        {
-            context.AcceptPublish = true;
-            var payload = context.ApplicationMessage?.Payload == null ? null : Encoding.UTF8.GetString(context.ApplicationMessage?.Payload);
-            _logger.LogInformation(
-                $"Message: ClientId = {context.ClientId}, Topic = {context.ApplicationMessage?.Topic},"
-                + $" Payload = {payload}, QoS = {context.ApplicationMessage?.QualityOfServiceLevel},"
-                + $" Retain-Flag = {context.ApplicationMessage?.Retain}");
-            return Task.CompletedTask;
-        }
-    }
-    
-    public class Interceptor : IMqttServerSubscriptionInterceptor
-    {
-        private readonly ILogger<Interceptor> _logger;
-
-        public Interceptor(ILogger<Interceptor> logger)
-        {
-            _logger = logger;
-        }
-        
-        public Task InterceptSubscriptionAsync(
-            MqttSubscriptionInterceptorContext context)
-        {
-            if (context == null)
-            {
-                return Task.CompletedTask;
-            }
-
-            context.AcceptSubscription = true;
-            _logger.LogInformation($"New subscription: ClientId = {context.ClientId}, TopicFilter = {context.TopicFilter}");
-            return Task.CompletedTask;
-        }
-    }
-    
     public class MqttService : IHostedService
     {
         private readonly ILogger<MqttService> _logger;
@@ -116,21 +72,6 @@ namespace com.b_velop.Mqtt.Server.Services
         {
             _logger.LogInformation("OnStopped has been called.");
             // Perform post-stopped activities here
-        }
-
-        private void RunJob(
-            object state)
-        {
-
-        }
-        
-        private void LogMessage(MqttSubscriptionInterceptorContext context, bool successful)
-        {
-            if (context == null)
-            {
-                return;
-            }
-            _logger.LogInformation(successful ? $"New subscription: ClientId = {context.ClientId}, TopicFilter = {context.TopicFilter}" : $"Subscription failed for clientId = {context.ClientId}, TopicFilter = {context.TopicFilter}");
         }
     }
 }
