@@ -46,8 +46,9 @@ namespace com.b_velop.Mqtt.Server
                     services.AddScoped<IMqttRepository, MqttRepository>();
                     ISecretProvider sp = new SecretProvider();
                     services.AddSingleton(sp);
+                    var stage = Environment.GetEnvironmentVariable("STAGE") ?? "";
                     var connectionString = string.Empty;
-                    if (hostContext.HostingEnvironment.IsDevelopment())
+                    if (stage == "Development")
                     {
                         connectionString = configuration.GetConnectionString("postgres");
                     }
@@ -62,6 +63,7 @@ namespace com.b_velop.Mqtt.Server
                     }
                     services.AddDbContext<DataContext>(options =>
                         options.UseNpgsql(connectionString));
+                    
                     services.AddHostedService<MqttService>();
                 })
                 .ConfigureLogging(
