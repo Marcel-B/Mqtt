@@ -22,19 +22,20 @@ namespace com.b_velop.Mqtt.Application.Services
         public  Task SaveRetainedMessagesAsync(
             IList<MqttApplicationMessage> messages)
         {
-            foreach (var message in messages)
-            {
-                var payload = message?.Payload == null ? null : Encoding.UTF8.GetString(message?.Payload);
-                var msg = _repo.AddMessage(new MqttMessage
-                {
-                    Created = DateTime.Now, 
-                    Message = payload,
-                    Topic = message?.Topic,
-                    ContentType = message?.ContentType
-                });
-            }
-            _repo.SaveChanges();
-            messages.Clear();
+            // foreach (var message in messages)
+            // {
+            //     var payload = message?.Payload == null ? null : Encoding.UTF8.GetString(message?.Payload);
+            //     var msg = _repo.AddMessage(new MqttMessage
+            //     {
+            //         Created = DateTime.Now,
+            //         Message = payload,
+            //         Topic = message?.Topic,
+            //         ContentType = message?.ContentType
+            //     });
+            // }
+            //
+            // _repo.SaveChanges();
+            // messages.Clear();
             return Task.CompletedTask;
         }
 
