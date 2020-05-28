@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using com.b_velop.Mqtt.Context;
 using com.b_velop.Mqtt.Data.Contracts;
 using com.b_velop.Mqtt.Domain.Models;
@@ -31,6 +33,9 @@ namespace com.b_velop.Mqtt.Data.Repositories
 
         public bool SaveChanges()
             => _context.SaveChanges() > 0;
+        
+        public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default)
+            => await _context.SaveChangesAsync(cancellationToken) > 0;
 
         public Guid AddMessage(MqttMessage message)
         {
