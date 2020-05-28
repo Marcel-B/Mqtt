@@ -19,7 +19,8 @@ namespace com.b_velop.Mqtt.Application.Services
             _repo = repo;
         }
         
-        public  Task SaveRetainedMessagesAsync(IList<MqttApplicationMessage> messages)
+        public  Task SaveRetainedMessagesAsync(
+            IList<MqttApplicationMessage> messages)
         {
             foreach (var message in messages)
             {
@@ -33,6 +34,7 @@ namespace com.b_velop.Mqtt.Application.Services
                 });
             }
             _repo.SaveChanges();
+            messages.Clear();
             return Task.CompletedTask;
         }
 
