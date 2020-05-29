@@ -1,3 +1,5 @@
+using System;
+
 namespace com.b_velop.Mqtt.Domain.Models
 {
     public class MeasureValue
@@ -8,7 +10,7 @@ namespace com.b_velop.Mqtt.Domain.Models
         public virtual SensorType SensorType { get; set; }
         public virtual Room Room { get; set; }
         
-        public string MeasureTimeTimestamp { get; set; }
+        public DateTime MeasureTimeTimestamp { get; set; }
         public string MeasureTypeName { get; set; }
         public string RoomName { get; set; }
         public string SensorTypeName { get; set; }
