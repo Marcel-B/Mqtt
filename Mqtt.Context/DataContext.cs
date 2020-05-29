@@ -28,6 +28,7 @@ namespace com.b_velop.Mqtt.Context
             modelBuilder.Entity<MeasureType>().HasKey(type => type.Name);
             modelBuilder.Entity<Room>().HasKey(k => k.Name);
             modelBuilder.Entity<SensorType>().HasKey(k => k.Name);
+            modelBuilder.Entity<MqttMessage>().HasIndex(m => m.Created);
             
             modelBuilder.Entity<MeasureValue>().HasKey(value =>
                 new {value.RoomName, value.MeasureTimeTimestamp, value.SensorTypeName, value.MeasureTypeName});

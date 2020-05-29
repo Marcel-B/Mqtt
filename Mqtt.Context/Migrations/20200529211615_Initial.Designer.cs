@@ -10,8 +10,8 @@ using com.b_velop.Mqtt.Context;
 namespace com.b_velop.Mqtt.Context.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20200529185415_AddMeasureTypes")]
-    partial class AddMeasureTypes
+    [Migration("20200529211615_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -49,8 +49,8 @@ namespace com.b_velop.Mqtt.Context.Migrations
                     b.Property<string>("RoomName")
                         .HasColumnType("text");
 
-                    b.Property<string>("MeasureTimeTimestamp")
-                        .HasColumnType("text");
+                    b.Property<DateTime>("MeasureTimeTimestamp")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("SensorTypeName")
                         .HasColumnType("text");
@@ -58,15 +58,12 @@ namespace com.b_velop.Mqtt.Context.Migrations
                     b.Property<string>("MeasureTypeName")
                         .HasColumnType("text");
 
-                    b.Property<DateTime?>("MeasureTimeTimestamp1")
-                        .HasColumnType("timestamp without time zone");
-
                     b.Property<double>("Value")
                         .HasColumnType("double precision");
 
                     b.HasKey("RoomName", "MeasureTimeTimestamp", "SensorTypeName", "MeasureTypeName");
 
-                    b.HasIndex("MeasureTimeTimestamp1");
+                    b.HasIndex("MeasureTimeTimestamp");
 
                     b.HasIndex("MeasureTypeName");
 
@@ -94,6 +91,8 @@ namespace com.b_velop.Mqtt.Context.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Created");
 
                     b.ToTable("MqttMessages");
                 });
@@ -141,7 +140,9 @@ namespace com.b_velop.Mqtt.Context.Migrations
                 {
                     b.HasOne("com.b_velop.Mqtt.Domain.Models.MeasureTime", "MeasureTime")
                         .WithMany("MeasureValues")
-                        .HasForeignKey("MeasureTimeTimestamp1");
+                        .HasForeignKey("MeasureTimeTimestamp")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("com.b_velop.Mqtt.Domain.Models.MeasureType", "MeasureType")
                         .WithMany()
