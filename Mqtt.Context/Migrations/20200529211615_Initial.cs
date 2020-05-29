@@ -19,7 +19,7 @@ namespace com.b_velop.Mqtt.Context.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MeasureType",
+                name: "MeasureTypes",
                 columns: table => new
                 {
                     Name = table.Column<string>(nullable: false),
@@ -27,7 +27,7 @@ namespace com.b_velop.Mqtt.Context.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MeasureType", x => x.Name);
+                    table.PrimaryKey("PK_MeasureTypes", x => x.Name);
                 });
 
             migrationBuilder.CreateTable(
@@ -85,26 +85,25 @@ namespace com.b_velop.Mqtt.Context.Migrations
                 name: "MeasureValues",
                 columns: table => new
                 {
-                    MeasureTimeTimestamp = table.Column<string>(nullable: false),
+                    MeasureTimeTimestamp = table.Column<DateTime>(nullable: false),
                     MeasureTypeName = table.Column<string>(nullable: false),
                     RoomName = table.Column<string>(nullable: false),
                     SensorTypeName = table.Column<string>(nullable: false),
-                    Value = table.Column<double>(nullable: false),
-                    MeasureTimeTimestamp1 = table.Column<DateTime>(nullable: true)
+                    Value = table.Column<double>(nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_MeasureValues", x => new { x.RoomName, x.MeasureTimeTimestamp, x.SensorTypeName, x.MeasureTypeName });
                     table.ForeignKey(
-                        name: "FK_MeasureValues_MeasureTimes_MeasureTimeTimestamp1",
-                        column: x => x.MeasureTimeTimestamp1,
+                        name: "FK_MeasureValues_MeasureTimes_MeasureTimeTimestamp",
+                        column: x => x.MeasureTimeTimestamp,
                         principalTable: "MeasureTimes",
                         principalColumn: "Timestamp",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_MeasureValues_MeasureType_MeasureTypeName",
+                        name: "FK_MeasureValues_MeasureTypes_MeasureTypeName",
                         column: x => x.MeasureTypeName,
-                        principalTable: "MeasureType",
+                        principalTable: "MeasureTypes",
                         principalColumn: "Name",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -122,9 +121,9 @@ namespace com.b_velop.Mqtt.Context.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_MeasureValues_MeasureTimeTimestamp1",
+                name: "IX_MeasureValues_MeasureTimeTimestamp",
                 table: "MeasureValues",
-                column: "MeasureTimeTimestamp1");
+                column: "MeasureTimeTimestamp");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MeasureValues_MeasureTypeName",
@@ -135,6 +134,11 @@ namespace com.b_velop.Mqtt.Context.Migrations
                 name: "IX_MeasureValues_SensorTypeName",
                 table: "MeasureValues",
                 column: "SensorTypeName");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MqttMessages_Created",
+                table: "MqttMessages",
+                column: "Created");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -152,7 +156,7 @@ namespace com.b_velop.Mqtt.Context.Migrations
                 name: "MeasureTimes");
 
             migrationBuilder.DropTable(
-                name: "MeasureType");
+                name: "MeasureTypes");
 
             migrationBuilder.DropTable(
                 name: "Rooms");

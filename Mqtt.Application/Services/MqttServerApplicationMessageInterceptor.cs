@@ -21,14 +21,16 @@ namespace com.b_velop.Mqtt.Application.Services
             _repo = repo;
             _logger = logger;
         }
-        
+
         public async Task InterceptApplicationMessagePublishAsync(MqttApplicationMessageInterceptorContext context)
         {
             context.AcceptPublish = true;
-            if(context.ApplicationMessage == null)
+            if (context.ApplicationMessage == null)
                 return;
-            
-            var payload = context.ApplicationMessage.Payload == null ? null : Encoding.UTF8.GetString(context.ApplicationMessage?.Payload);
+
+            var payload = context.ApplicationMessage.Payload == null
+                ? null
+                : Encoding.UTF8.GetString(context.ApplicationMessage?.Payload);
             if (context.ApplicationMessage.Retain)
             {
                 var msg = _repo.AddMessage(new MqttMessage
@@ -49,11 +51,16 @@ namespace com.b_velop.Mqtt.Application.Services
                         MeasureTimeTimestamp = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day,
                             DateTime.Now.Hour, DateTime.Now.Minute, 0)
                     };
-                    _repo.AddMeasureValue(mv);
+                    if (double.TryParse(payload, out var val))
+                    {
+                        mv.Value = val;
+                        _repo.AddMeasureValue(mv);
+                    }
                 }
-                    if (await _repo.SaveChangesAsync())
+                if (await _repo.SaveChangesAsync())
                     context.AcceptPublish = true;
             }
+
             _logger.LogInformation(
                 $"Message: ClientId = {context.ClientId}, Topic = {context.ApplicationMessage?.Topic},"
                 + $" Payload = {payload}, QoS = {context.ApplicationMessage?.QualityOfServiceLevel},"
