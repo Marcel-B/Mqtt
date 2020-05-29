@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using com.b_velop.Mqtt.Data.Contracts;
@@ -37,7 +38,21 @@ namespace com.b_velop.Mqtt.Application.Services
                     Topic = context.ApplicationMessage.Topic,
                     ContentType = context.ApplicationMessage.ContentType
                 });
-                await _repo.SaveChangesAsync();
+                var tree = context.ApplicationMessage.Topic.Split('/');
+                if (tree.First() == "arduino")
+                {
+                    var mv = new MeasureValue
+                    {
+                        RoomName = tree[1],
+                        MeasureTypeName = tree[2],
+                        SensorTypeName = tree[3],
+                        MeasureTimeTimestamp = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day,
+                            DateTime.Now.Hour, DateTime.Now.Minute, 0)
+                    };
+                    _repo.AddMeasureValue(mv);
+                }
+                    if (await _repo.SaveChangesAsync())
+                    context.AcceptPublish = true;
             }
             _logger.LogInformation(
                 $"Message: ClientId = {context.ClientId}, Topic = {context.ApplicationMessage?.Topic},"

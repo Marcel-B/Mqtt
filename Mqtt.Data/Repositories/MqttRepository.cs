@@ -46,5 +46,10 @@ namespace com.b_velop.Mqtt.Data.Repositories
         {
             return _context.MqttMessages.ToList();
         }
+
+        public void AddMeasureValue(MeasureValue measureValue)
+        {
+            _context.MeasureValues.Add(measureValue);
+        }
     }
 }

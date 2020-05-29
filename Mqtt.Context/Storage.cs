@@ -106,7 +106,12 @@ namespace com.b_velop.Mqtt.Context
                     Created = DateTime.Now
                 }
             };
-
+            foreach (var measureType in measureTypes)
+            {
+                var tmp = context.MeasureTypes.FirstOrDefault(m => m.Name == measureType.Name);
+                if (tmp == null)
+                    context.MeasureTypes.Add(measureType);
+            }
             context.SaveChanges();
         }
     }

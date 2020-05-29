@@ -41,7 +41,7 @@ namespace com.b_velop.Mqtt.Client
             var mssg = new MqttApplicationMessageBuilder();
             mssg.WithRetainFlag(true);
            var la = mssg.WithPayload("Hello from Client sowieso")
-                .WithTopic("test/nuc/message")
+                .WithTopic("test/nace/message")
                 .Build();
            var response = await l.PublishAsync(la, CancellationToken.None);
            Console.WriteLine(response.ReasonString);

@@ -10,6 +10,7 @@ namespace com.b_velop.Mqtt.Context
         public DbSet<MeasureTime> MeasureTimes { get; set; }
         public DbSet<MeasureValue> MeasureValues { get; set; }
         public DbSet<MqttMessage> MqttMessages { get; set; }
+        public DbSet<MeasureType> MeasureTypes { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<SensorType> SensorTypes { get; set; }
 
