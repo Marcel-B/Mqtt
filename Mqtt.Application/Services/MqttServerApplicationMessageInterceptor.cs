@@ -43,13 +43,13 @@ namespace com.b_velop.Mqtt.Application.Services
                 var tree = context.ApplicationMessage.Topic.Split('/');
                 if (tree.First() == "arduino")
                 {
+                    var date = _repo.AddTimestamp();
                     var mv = new MeasureValue
                     {
                         RoomName = tree[1],
                         MeasureTypeName = tree[2],
                         SensorTypeName = tree[3],
-                        MeasureTimeTimestamp = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day,
-                            DateTime.Now.Hour, DateTime.Now.Minute, 0)
+                        MeasureTimeTimestamp = date,
                     };
                     if (double.TryParse(payload, out var val))
                     {
