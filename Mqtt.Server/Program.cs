@@ -24,7 +24,7 @@ namespace com.b_velop.Mqtt.Server
         {
             var host = CreateHostBuilder(args).Build();
             var context = host.Services.GetRequiredService<DataContext>();
-            context.Database.EnsureDeleted();
+            //context.Database.EnsureDeleted();
             context.Database.Migrate();
             context.SaveChanges();
             Storage.Seed(context);
