@@ -33,7 +33,7 @@ namespace com.b_velop.Mqtt.Data.Repositories
 
         public bool SaveChanges()
             => _context.SaveChanges() > 0;
-        
+
         public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default)
             => await _context.SaveChangesAsync(cancellationToken) > 0;
 
@@ -57,7 +57,13 @@ namespace com.b_velop.Mqtt.Data.Repositories
             var d = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day,
                 DateTime.Now.Hour, DateTime.Now.Minute, 0);
 
-            var v = _context.MeasureTimes.FirstOrDefault(t => t.Timestamp == d) ?? _context.MeasureTimes.Add(new MeasureTime{Timestamp = d}).Entity;
+            var v = _context.MeasureTimes.FirstOrDefault(t => t.Timestamp == d);
+         
+            if (v != null) 
+                return v.Timestamp;
+            
+            v = _context.MeasureTimes.Add(new MeasureTime {Timestamp = d}).Entity;
+            _context.SaveChanges();
             return v.Timestamp;
         }
     }
