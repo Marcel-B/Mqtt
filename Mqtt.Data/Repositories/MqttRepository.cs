@@ -52,7 +52,7 @@ namespace com.b_velop.Mqtt.Data.Repositories
             _context.MeasureValues.Add(measureValue);
         }
 
-        public DateTime AddTimestamp()
+        public MeasureTime AddTimestamp()
         {
             var d = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day,
                 DateTime.Now.Hour, DateTime.Now.Minute, 0);
@@ -60,11 +60,11 @@ namespace com.b_velop.Mqtt.Data.Repositories
             var v = _context.MeasureTimes.FirstOrDefault(t => t.Timestamp == d);
          
             if (v != null) 
-                return v.Timestamp;
+                return v;
             
             v = _context.MeasureTimes.Add(new MeasureTime {Timestamp = d}).Entity;
             _context.SaveChanges();
-            return v.Timestamp;
+            return v;
         }
     }
 }

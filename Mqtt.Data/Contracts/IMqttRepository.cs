@@ -15,6 +15,6 @@ namespace com.b_velop.Mqtt.Data.Contracts
         Guid AddMessage(MqttMessage message);
         IEnumerable<MqttMessage> GetMessages();
         void AddMeasureValue(MeasureValue measureValue);
-        DateTime AddTimestamp();
+        MeasureTime AddTimestamp();
     }
 }
