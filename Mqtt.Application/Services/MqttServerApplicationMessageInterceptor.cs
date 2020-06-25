@@ -41,24 +41,35 @@ namespace com.b_velop.Mqtt.Application.Services
                     ContentType = context.ApplicationMessage.ContentType
                 });
                 var tree = context.ApplicationMessage.Topic.Split('/');
-                // if (tree.First() == "arduino")
-                // {
-                //     var measureTime = _repo.AddTimestamp();
-                //     var mv = new MeasureValue
-                //     {
-                //         RoomName = tree[1],
-                //         MeasureTypeName = tree[2],
-                //         SensorTypeName = tree[3],
-                //         MeasureTime = measureTime,
-                //     };
-                //     if (double.TryParse(payload, out var val))
-                //     {
-                //         mv.Value = val;
-                //         _repo.AddMeasureValue(mv);
-                //     }
-                // }
-                // if (await _repo.SaveChangesAsync())
-                    context.AcceptPublish = true;
+                if (tree.First() == "arduino")
+                {
+                    var measureTime = _repo.AddTimestamp();
+                    if (measureTime != null)
+                    {
+                        var mv = new MeasureValue
+                        {
+                            RoomName = tree[1],
+                            MeasureTypeName = tree[2],
+                            SensorTypeName = tree[3],
+                            MeasureTime = measureTime,
+                        };
+                        if (double.TryParse(payload, out var val))
+                        {
+                            mv.Value = val;
+                            _repo.AddMeasureValue(mv);
+                        }
+                    }
+                }
+
+                try
+                {
+                    if (await _repo.SaveChangesAsync())
+                        context.AcceptPublish = true;
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(6666, e, $"Error while persisting mqtt value to db");
+                }
             }
 
             _logger.LogInformation(

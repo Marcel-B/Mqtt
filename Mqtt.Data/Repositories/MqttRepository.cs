@@ -6,17 +6,21 @@ using System.Threading.Tasks;
 using com.b_velop.Mqtt.Context;
 using com.b_velop.Mqtt.Data.Contracts;
 using com.b_velop.Mqtt.Domain.Models;
+using Microsoft.Extensions.Logging;
 
 namespace com.b_velop.Mqtt.Data.Repositories
 {
     public class MqttRepository : IMqttRepository
     {
         private readonly DataContext _context;
+        private readonly ILogger<MqttRepository> _logger;
 
         public MqttRepository(
-            DataContext context)
+            DataContext context,
+            ILogger<MqttRepository> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public MqttUser GetUser(string username)
@@ -63,8 +67,16 @@ namespace com.b_velop.Mqtt.Data.Repositories
                 return v;
             
             v = _context.MeasureTimes.Add(new MeasureTime {Timestamp = d}).Entity;
-            _context.SaveChanges();
-            return v;
+            try
+            {
+                _context.SaveChanges();
+                return v;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(6666, e, $"Error while saving new Timestamp");
+                return null;
+            }
         }
     }
 }
