@@ -54,6 +54,7 @@ namespace com.b_velop.Mqtt.Data.Repositories
 
         public Guid AddMessage(MqttMessage message) => _context.MqttMessages.Add(message).Entity.Id;
         public IEnumerable<MqttMessage> GetMessages() => _context.MqttMessages.ToList();
+        public IQueryable<MqttMessage> GetMessagesAsQueryable() => _context.MqttMessages.AsQueryable();
         public void AddMeasureValue(MeasureValue measureValue) => _context.MeasureValues.Add(measureValue);
 
         public MeasureTime AddTimestamp()
@@ -77,6 +78,33 @@ namespace com.b_velop.Mqtt.Data.Repositories
                 _logger.LogError(6666, e, $"Error while saving new Timestamp");
                 return null;
             }
+        }
+
+        public MeasureTime AddTimestamp(DateTime timeStamp)
+        {
+            return _context.MeasureTimes.Add(new MeasureTime {Timestamp = timeStamp}).Entity;
+        }
+
+        public void DeleteMessage(MqttMessage message) => _context.MqttMessages.Remove(message);
+        public Room GetRoom(string room) => _context.Rooms.Find(room);
+        public SensorType GetSensorType(string sensorType) => _context.SensorTypes.Find(sensorType);
+        public MeasureType GetMeasureType(string measureType) => _context.MeasureTypes.Find(measureType);
+        public bool MeasureExsists(string roomName, string measureType, string sensorType, DateTime timestamp)
+            => _context.MeasureValues.FirstOrDefault(m =>
+                m.MeasureTimeTimestamp == timestamp &&
+                m.RoomName == roomName &&
+                m.SensorTypeName == sensorType &&
+                m.MeasureTypeName == measureType) != null;
+
+        public DateTime LastTimestamp()
+        {
+            var last = _context.MeasureTimes.Select(x => x.Timestamp);
+            return last.Max();
+        }
+
+        public void AddMeasureValues(List<MeasureValue> measureValues)
+        {
+            _context.MeasureValues.AddRange(measureValues);
         }
     }
 }
