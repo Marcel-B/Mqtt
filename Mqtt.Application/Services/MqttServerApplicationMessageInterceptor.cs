@@ -31,8 +31,13 @@ namespace com.b_velop.Mqtt.Application.Services
             var payload = context.ApplicationMessage.Payload == null
                 ? null
                 : Encoding.UTF8.GetString(context.ApplicationMessage?.Payload);
+            
             if (context.ApplicationMessage.Retain)
             {
+                if (context.ApplicationMessage.Topic.StartsWith("mcu/"))
+                {
+                    return;
+                }
                 var msg = _repo.AddMessage(new MqttMessage
                 {
                     Created = DateTime.Now,
