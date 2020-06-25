@@ -68,7 +68,7 @@ namespace com.b_velop.Mqtt.Server
                         options.EnableSensitiveDataLogging();
                         options.EnableDetailedErrors();
                         options.EnableServiceProviderCaching();
-                    });
+                    }, ServiceLifetime.Transient);
                     
                     services.AddHostedService<MqttService>();
                     services.AddHostedService<InsertService>();
