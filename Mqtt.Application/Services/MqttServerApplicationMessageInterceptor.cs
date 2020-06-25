@@ -40,6 +40,7 @@ namespace com.b_velop.Mqtt.Application.Services
                     Topic = context.ApplicationMessage.Topic,
                     ContentType = context.ApplicationMessage.ContentType
                 });
+                await _repo.SaveChangesAsync();
                 var tree = context.ApplicationMessage.Topic.Split('/');
                 if (tree.First() == "arduino")
                 {
