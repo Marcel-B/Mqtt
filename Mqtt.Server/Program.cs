@@ -63,9 +63,15 @@ namespace com.b_velop.Mqtt.Server
                         connectionString = $"Host={host};Port={port};Username={username};Password={pw};Database={db};";
                     }
                     services.AddDbContext<DataContext>(options =>
-                        options.UseNpgsql(connectionString));
+                    {
+                        options.UseNpgsql(connectionString);
+                        options.EnableSensitiveDataLogging();
+                        options.EnableDetailedErrors();
+                        options.EnableServiceProviderCaching();
+                    });
                     
                     services.AddHostedService<MqttService>();
+                    services.AddHostedService<InsertService>();
                 })
                 .ConfigureLogging(
                     logging =>
