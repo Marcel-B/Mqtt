@@ -60,7 +60,7 @@ namespace com.b_velop.Mqtt.Application.Services
                         }
                     }
                 }
-
+                
                 try
                 {
                     if (await _repo.SaveChangesAsync())
@@ -70,6 +70,7 @@ namespace com.b_velop.Mqtt.Application.Services
                 {
                     _logger.LogError(6666, e, $"Error while persisting mqtt value to db");
                 }
+                
             }
 
             _logger.LogInformation(

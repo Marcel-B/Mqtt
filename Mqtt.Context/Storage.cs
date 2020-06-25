@@ -42,6 +42,11 @@ namespace com.b_velop.Mqtt.Context
                 {
                     Name = "dallas",
                     Created = DateTime.Now
+                },
+                new SensorType
+                {
+                    Name = "neo7m",
+                    Created = DateTime.Now
                 }
             };
 
@@ -103,6 +108,21 @@ namespace com.b_velop.Mqtt.Context
                 new MeasureType
                 {
                     Name = "altitude",
+                    Created = DateTime.Now
+                },
+                new MeasureType
+                {
+                    Name = "longitude",
+                    Created = DateTime.Now
+                },
+                new MeasureType
+                {
+                    Name = "latitude",
+                    Created = DateTime.Now
+                },
+                new MeasureType
+                {
+                    Name = "speed",
                     Created = DateTime.Now
                 }
             };

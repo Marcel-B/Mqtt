@@ -39,7 +39,18 @@ namespace com.b_velop.Mqtt.Data.Repositories
             => _context.SaveChanges() > 0;
 
         public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default)
-            => await _context.SaveChangesAsync(cancellationToken) > 0;
+        {
+            var success = false;
+            try
+            {           
+                success = await _context.SaveChangesAsync(cancellationToken) > 0;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(6666, e , "Error while saving database changes");
+            }
+            return success;
+        }
 
         public Guid AddMessage(MqttMessage message)
         {
@@ -62,10 +73,10 @@ namespace com.b_velop.Mqtt.Data.Repositories
                 DateTime.Now.Hour, DateTime.Now.Minute, 0);
 
             var v = _context.MeasureTimes.FirstOrDefault(t => t.Timestamp == d);
-         
-            if (v != null) 
+
+            if (v != null)
                 return v;
-            
+
             v = _context.MeasureTimes.Add(new MeasureTime {Timestamp = d}).Entity;
             try
             {
