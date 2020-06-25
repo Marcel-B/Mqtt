@@ -35,37 +35,26 @@ namespace com.b_velop.Mqtt.Data.Repositories
             return user.Entity;
         }
 
-        public bool SaveChanges()
-            => _context.SaveChanges() > 0;
+        public bool SaveChanges() => _context.SaveChanges() > 0;
 
         public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             var success = false;
             try
-            {           
+            {
                 success = await _context.SaveChangesAsync(cancellationToken) > 0;
             }
             catch (Exception e)
             {
-                _logger.LogError(6666, e , "Error while saving database changes");
+                _logger.LogError(6666, e, "Error while saving database changes");
             }
+
             return success;
         }
 
-        public Guid AddMessage(MqttMessage message)
-        {
-            return _context.MqttMessages.Add(message).Entity.Id;
-        }
-
-        public IEnumerable<MqttMessage> GetMessages()
-        {
-            return _context.MqttMessages.ToList();
-        }
-
-        public void AddMeasureValue(MeasureValue measureValue)
-        {
-            _context.MeasureValues.Add(measureValue);
-        }
+        public Guid AddMessage(MqttMessage message) => _context.MqttMessages.Add(message).Entity.Id;
+        public IEnumerable<MqttMessage> GetMessages() => _context.MqttMessages.ToList();
+        public void AddMeasureValue(MeasureValue measureValue) => _context.MeasureValues.Add(measureValue);
 
         public MeasureTime AddTimestamp()
         {
