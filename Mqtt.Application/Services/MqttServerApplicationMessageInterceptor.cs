@@ -41,7 +41,7 @@ namespace com.b_velop.Mqtt.Application.Services
                     ContentType = context.ApplicationMessage.ContentType
                 });
                 var tree = context.ApplicationMessage.Topic.Split('/');
-                if (false)//tree.First() == "arduino")
+                if (tree.First() == "arduino")
                 {
                     var measureTime = _repo.AddTimestamp();
                     var mv = new MeasureValue
