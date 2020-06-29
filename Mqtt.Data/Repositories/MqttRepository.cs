@@ -93,7 +93,7 @@ namespace com.b_velop.Mqtt.Data.Repositories
         public SensorType GetSensorType(string sensorType) => _context.SensorTypes.Find(sensorType);
         public MeasureType GetMeasureType(string measureType) => _context.MeasureTypes.Find(measureType);
 
-        public bool MeasureExsists(string roomName, string measureType, string sensorType, DateTime timestamp)
+        public bool MeasureExists(string roomName, string measureType, string sensorType, DateTime timestamp)
             => _context.MeasureValues.FirstOrDefault(m =>
                 m.MeasureTimeTimestamp == timestamp &&
                 m.RoomName == roomName &&

@@ -135,6 +135,10 @@ namespace com.b_velop.Mqtt.Application.Services.Hosted
                 var measureType = _repo.GetMeasureType(fields[2]);
                 var sensorType = _repo.GetSensorType(fields[3]);
 
+                if (_repo.MeasureExists(room.Name, measureType.Name, sensorType.Name, timestamp.Timestamp))
+                {
+                    _repo.DeleteMessage(message);
+                }
                 if (measureValues.FirstOrDefault(x =>
                     x.RoomName == room.Name &&
                     x.MeasureTimeTimestamp == timestamp.Timestamp &&
