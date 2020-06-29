@@ -23,11 +23,15 @@ namespace com.b_velop.Mqtt.Server
         static async Task Main(string[] args)
         {
             var host = CreateHostBuilder(args).Build();
-            var context = host.Services.GetRequiredService<DataContext>();
-            //context.Database.EnsureDeleted();
-            context.Database.Migrate();
-            context.SaveChanges();
-            Storage.Seed(context);
+            using (var scope = host.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<DataContext>();
+                //context.Database.EnsureDeleted();
+                await context.Database.MigrateAsync();
+                await context.SaveChangesAsync();
+                Storage.Seed(context);
+            }
+
             await host.RunAsync();
         }
 
@@ -35,18 +39,23 @@ namespace com.b_velop.Mqtt.Server
             => Host.CreateDefaultBuilder(args).ConfigureServices((hostContext, services) =>
                 {
                     var configuration = hostContext.Configuration;
+                    
                     services.AddSingleton<IMqttServerOptions, MqttServerOptions>();
                     services.AddSingleton<IMqttServerFactory, MqttFactory>();
                     services.AddSingleton<IMqttServerStorage, MqttStorage>();
                     services.AddSingleton<IMqttServerSubscriptionInterceptor, MqttServerSubscriptionInterceptor>();
+                    
                     services
                         .AddSingleton<IMqttServerApplicationMessageInterceptor, MqttServerApplicationMessageInterceptor
                         >();
+                    
                     services.AddSingleton<IMqttServerConnectionValidator, MqttServerConnectionValidator>();
                     services.AddSingleton<IServerBuilder, ServerBuilder>();
                     services.AddSingleton<IMqttRepository, MqttRepository>();
-                    ISecretProvider sp = new SecretProvider();
-                    services.AddSingleton(sp);
+                    
+                    ISecretProvider secretProvider = new SecretProvider();
+                    services.AddSingleton(secretProvider);
+                    
                     var stage = Environment.GetEnvironmentVariable("STAGE") ?? "";
                     var connectionString = string.Empty;
                     if (stage == "Development")
@@ -55,11 +64,11 @@ namespace com.b_velop.Mqtt.Server
                     }
                     else
                     {
-                        var db = sp.GetSecret("database");
-                        var host = sp.GetSecret("host");
-                        var username = sp.GetSecret("username");
-                        var port = sp.GetSecret("port");
-                        var pw = sp.GetSecret("postgres_db_password");
+                        var db = secretProvider.GetSecret("database");
+                        var host = secretProvider.GetSecret("host");
+                        var username = secretProvider.GetSecret("username");
+                        var port = secretProvider.GetSecret("port");
+                        var pw = secretProvider.GetSecret("postgres_db_password");
                         connectionString = $"Host={host};Port={port};Username={username};Password={pw};Database={db};";
                     }
                     services.AddDbContext<DataContext>(options =>
