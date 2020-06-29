@@ -48,10 +48,10 @@ namespace com.b_velop.Mqtt.Application.Services
                 await _repo.SaveChangesAsync();
             }
 
-            _logger.LogInformation(
-                $"Message: ClientId = {context.ClientId}, Topic = {context.ApplicationMessage?.Topic},"
-                + $" Payload = {payload}, QoS = {context.ApplicationMessage?.QualityOfServiceLevel},"
-                + $" Retain-Flag = {context.ApplicationMessage?.Retain}");
+            // _logger.LogInformation(
+            //     $"Message: ClientId = {context.ClientId}, Topic = {context.ApplicationMessage?.Topic},"
+            //     + $" Payload = {payload}, QoS = {context.ApplicationMessage?.QualityOfServiceLevel},"
+            //     + $" Retain-Flag = {context.ApplicationMessage?.Retain}");
         }
     }
 }
