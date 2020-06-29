@@ -7,6 +7,7 @@ using com.b_velop.Mqtt.Application.Helpers;
 using com.b_velop.Mqtt.Data.Contracts;
 using com.b_velop.Mqtt.Domain.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -15,18 +16,18 @@ namespace com.b_velop.Mqtt.Application.Services.Hosted
     public class InsertService : IHostedService
     {
         private readonly ILogger<InsertService> _logger;
-        private readonly IMqttRepository _repo;
+        private readonly IServiceProvider _services;
         private Timer _timer;
         private static bool _running = false;
         private readonly IHostApplicationLifetime _appLifetime;
 
         public InsertService(
             ILogger<InsertService> logger,
-            IMqttRepository repo,
+            IServiceProvider services,
             IHostApplicationLifetime appLifetime)
         {
             _logger = logger;
-            _repo = repo;
+            _services = services;
             _appLifetime = appLifetime;
 
             _appLifetime.ApplicationStarted.Register(OnStarted);
@@ -57,6 +58,7 @@ namespace com.b_velop.Mqtt.Application.Services.Hosted
 
         private async void InsertValues(object state)
         {
+    
             if (_running)
             {
                 _logger.LogInformation(4444, $"Job is already running");
@@ -64,26 +66,28 @@ namespace com.b_velop.Mqtt.Application.Services.Hosted
             }
 
             _running = true;
-            var lastTimestamp = _repo.LastTimestamp();
+            var scope = _services.CreateScope();
+            var repo = scope.ServiceProvider.GetRequiredService<IMqttRepository>();
+            var lastTimestamp = repo.LastTimestamp();
             var currentTimestamp = lastTimestamp.AddMinutes(1);
 
             while (currentTimestamp < Now())
             {
-                var timestamp = _repo.AddTimestamp(currentTimestamp);
+                var timestamp = repo.AddTimestamp(currentTimestamp);
                 currentTimestamp = timestamp.Timestamp.AddMinutes(1);
 
                 var messages = await
-                    _repo.GetMessagesAsQueryable()
+                    repo.GetMessagesAsQueryable()
                         .Where(msg => msg.Created >= currentTimestamp && msg.Created < currentTimestamp.AddMinutes(1))
                         .Where(msg => msg.Topic.StartsWith("arduino"))
                         .Where(msg => !msg.Topic.EndsWith("neo7m"))
                         .ToListAsync();
-                await InsertMessages(messages, timestamp);
+                await InsertMessages(repo, messages, timestamp);
             }
 
             // Check if old messages are present
             var mqttMessages = await
-                _repo.GetMessagesAsQueryable()
+                repo.GetMessagesAsQueryable()
                     .Where(msg => msg.Topic.StartsWith("arduino"))
                     .Where(msg => !msg.Topic.EndsWith("neo7m"))
                     .OrderBy(msg => msg.Created)
@@ -104,15 +108,16 @@ namespace com.b_velop.Mqtt.Application.Services.Hosted
             var mMessages = new List<MqttMessage>();
             foreach (var messageGroup in newMessages)
             {
-                var timestamp = _repo.GetTimestamp(messageGroup.Key);
+                var timestamp = repo.GetTimestamp(messageGroup.Key);
                 mMessages.AddRange(messageGroup);
-                await InsertMessages(mMessages, timestamp);
+                await InsertMessages(repo, mMessages, timestamp);
                 mMessages.Clear();
             }
             _running = false;
         }
 
         private async Task InsertMessages(
+            IMqttRepository repo,
             List<MqttMessage> messages,
             MeasureTime timestamp)
         {
@@ -121,23 +126,23 @@ namespace com.b_velop.Mqtt.Application.Services.Hosted
             {
                 if (!message.TryGetFields(out var fields))
                 {
-                    _repo.DeleteMessage(message);
+                    repo.DeleteMessage(message);
                     continue;
                 }
 
                 if (!double.TryParse(message.Message, out var value))
                 {
-                    _repo.DeleteMessage(message);
+                    repo.DeleteMessage(message);
                     continue;
                 }
 
-                var room = _repo.GetRoom(fields[1]);
-                var measureType = _repo.GetMeasureType(fields[2]);
-                var sensorType = _repo.GetSensorType(fields[3]);
+                var room = repo.GetRoom(fields[1]);
+                var measureType = repo.GetMeasureType(fields[2]);
+                var sensorType = repo.GetSensorType(fields[3]);
 
-                if (_repo.MeasureExists(room.Name, measureType.Name, sensorType.Name, timestamp.Timestamp))
+                if (repo.MeasureExists(room.Name, measureType.Name, sensorType.Name, timestamp.Timestamp))
                 {
-                    _repo.DeleteMessage(message);
+                    repo.DeleteMessage(message);
                 }
                 if (measureValues.FirstOrDefault(x =>
                     x.RoomName == room.Name &&
@@ -155,11 +160,11 @@ namespace com.b_velop.Mqtt.Application.Services.Hosted
                     };
                     measureValues.Add(measureValue);
                 }
-                _repo.DeleteMessage(message);
+                repo.DeleteMessage(message);
             }
 
-            _repo.AddMeasureValues(measureValues);
-            await _repo.SaveChangesAsync();
+            repo.AddMeasureValues(measureValues);
+            await repo.SaveChangesAsync();
             measureValues.Clear();
         }
 

@@ -44,7 +44,7 @@ namespace com.b_velop.Mqtt.Server
                         >();
                     services.AddSingleton<IMqttServerConnectionValidator, MqttServerConnectionValidator>();
                     services.AddSingleton<IServerBuilder, ServerBuilder>();
-                    services.AddScoped<IMqttRepository, MqttRepository>();
+                    services.AddSingleton<IMqttRepository, MqttRepository>();
                     ISecretProvider sp = new SecretProvider();
                     services.AddSingleton(sp);
                     var stage = Environment.GetEnvironmentVariable("STAGE") ?? "";
@@ -68,7 +68,7 @@ namespace com.b_velop.Mqtt.Server
                         options.EnableSensitiveDataLogging();
                         options.EnableDetailedErrors();
                         options.EnableServiceProviderCaching();
-                    }, ServiceLifetime.Transient);
+                    });
                     
                     services.AddHostedService<MqttService>();
                     services.AddHostedService<InsertService>();
