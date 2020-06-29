@@ -18,7 +18,8 @@ namespace com.b_velop.Mqtt.Data.Contracts
          IQueryable<MqttMessage> GetMessagesAsQueryable();
         void AddMeasureValue(MeasureValue measureValue);
         MeasureTime AddTimestamp();
-        MeasureTime AddTimestamp(DateTime timeStamp);
+        MeasureTime AddTimestamp(DateTime timestamp);
+        MeasureTime GetTimestamp(DateTime timestamp);
         void DeleteMessage(MqttMessage message);
         Room GetRoom(string room);
         SensorType GetSensorType(string sensorType);

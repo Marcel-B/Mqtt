@@ -85,10 +85,14 @@ namespace com.b_velop.Mqtt.Data.Repositories
             return _context.MeasureTimes.Add(new MeasureTime {Timestamp = timeStamp}).Entity;
         }
 
+        public MeasureTime GetTimestamp(DateTime timestamp) =>
+            _context.MeasureTimes.FirstOrDefault(t => t.Timestamp == timestamp);
+
         public void DeleteMessage(MqttMessage message) => _context.MqttMessages.Remove(message);
         public Room GetRoom(string room) => _context.Rooms.Find(room);
         public SensorType GetSensorType(string sensorType) => _context.SensorTypes.Find(sensorType);
         public MeasureType GetMeasureType(string measureType) => _context.MeasureTypes.Find(measureType);
+
         public bool MeasureExsists(string roomName, string measureType, string sensorType, DateTime timestamp)
             => _context.MeasureValues.FirstOrDefault(m =>
                 m.MeasureTimeTimestamp == timestamp &&

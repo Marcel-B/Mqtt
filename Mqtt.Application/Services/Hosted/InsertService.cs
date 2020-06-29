@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using com.b_velop.Mqtt.Application.Helpers;
 using com.b_velop.Mqtt.Data.Contracts;
 using com.b_velop.Mqtt.Domain.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -14,9 +16,9 @@ namespace com.b_velop.Mqtt.Application.Services.Hosted
     {
         private readonly ILogger<InsertService> _logger;
         private readonly IMqttRepository _repo;
-        private IHostApplicationLifetime _appLifetime;
         private Timer _timer;
-        private static bool Running = false;
+        private static bool _running = false;
+        private readonly IHostApplicationLifetime _appLifetime;
 
         public InsertService(
             ILogger<InsertService> logger,
@@ -34,84 +36,127 @@ namespace com.b_velop.Mqtt.Application.Services.Hosted
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _timer = new Timer(InsertValues, null, TimeSpan.FromSeconds(5),
+            _timer = new Timer(
+                InsertValues,
+                null,
+                TimeSpan.FromSeconds(5),
                 TimeSpan.FromMinutes(5));
             return Task.CompletedTask;
         }
 
-        public DateTime Now()
+        private DateTime Now()
         {
-            return new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour,
-                DateTime.Now.Minute, 0);
+            return new DateTime(
+                DateTime.Now.Year,
+                DateTime.Now.Month,
+                DateTime.Now.Day,
+                DateTime.Now.Hour,
+                DateTime.Now.Minute,
+                0);
         }
 
-        public async void InsertValues(object state)
+        private async void InsertValues(object state)
         {
-            if (Running) return;
-            Running = true;
-            var lastTime = _repo.LastTimestamp();
-            var time = lastTime.AddMinutes(1);
-            var mvs = new List<MeasureValue>();
-            while (time < Now())
+            if (_running)
             {
-                var t = _repo.AddTimestamp(time);
-                time = t.Timestamp;
-                time = time.AddMinutes(1);
-                
-                var msgs = _repo.GetMessagesAsQueryable()
-                    .Where(msg => msg.Created >= time && msg.Created < time.AddMinutes(1)).ToList();
-                
-                var messages = msgs
-                    .Where(msg => msg.Topic.StartsWith("arduino"))
-                    .Where(msg => !msg.Topic.EndsWith("neo7m")).ToList();
-
-                foreach (var message in messages)
-                {
-                    if (!double.TryParse(message.Message, out var value))
-                    {
-                        _repo.DeleteMessage(message);
-                        continue;
-                    }
-
-                    var fields = message.Topic.Split('/');
-                    if (fields.Length != 4)
-                    {
-                        _repo.DeleteMessage(message);
-                        continue;
-                    }
-
-                    var room = _repo.GetRoom(fields[1]);
-                    // if(room.Name == "mobilehome")
-                    //     continue;
-                    var mType = _repo.GetMeasureType(fields[2]);
-                    var sType = _repo.GetSensorType(fields[3]);
-                    if (mvs.FirstOrDefault(vv =>
-                        vv.RoomName == room.Name &&
-                        vv.MeasureTimeTimestamp == t.Timestamp &&
-                        vv.MeasureTypeName == mType.Name &&
-                        vv.SensorTypeName == sType.Name) == null)
-                    {
-                        var m = new MeasureValue
-                        {
-                            MeasureTimeTimestamp = t.Timestamp,
-                            RoomName = room.Name,
-                            Value = value,
-                            MeasureTypeName = mType.Name,
-                            SensorTypeName = sType.Name
-                        };
-                        mvs.Add(m);
-                    }
-
-                    _repo.DeleteMessage(message);
-                }
-
-                _repo.AddMeasureValues(mvs);
-                await _repo.SaveChangesAsync();
-                mvs.Clear();
+                _logger.LogInformation(4444, $"Job is already running");
+                return;
             }
 
+            _running = true;
+            var lastTimestamp = _repo.LastTimestamp();
+            var currentTimestamp = lastTimestamp.AddMinutes(1);
+
+            while (currentTimestamp < Now())
+            {
+                var timestamp = _repo.AddTimestamp(currentTimestamp);
+                currentTimestamp = timestamp.Timestamp.AddMinutes(1);
+
+                var messages = await
+                    _repo.GetMessagesAsQueryable()
+                        .Where(msg => msg.Created >= currentTimestamp && msg.Created < currentTimestamp.AddMinutes(1))
+                        .Where(msg => msg.Topic.StartsWith("arduino"))
+                        .Where(msg => !msg.Topic.EndsWith("neo7m"))
+                        .ToListAsync();
+                await InsertMessages(messages, timestamp);
+            }
+
+            // Check if old messages are present
+            var mqttMessages = await
+                _repo.GetMessagesAsQueryable()
+                    .Where(msg => msg.Topic.StartsWith("arduino"))
+                    .Where(msg => !msg.Topic.EndsWith("neo7m"))
+                    .OrderBy(msg => msg.Created)
+                    .ToListAsync();
+
+            foreach (var message in mqttMessages)
+            {
+                message.Created = message.Created.CutSeconds();
+            }
+
+            var newMessages =
+                from message in mqttMessages
+                group message by message.Created
+                into newGroup
+                orderby newGroup.Key
+                select newGroup;
+
+            var mMessages = new List<MqttMessage>();
+            foreach (var messageGroup in newMessages)
+            {
+                var timestamp = _repo.GetTimestamp(messageGroup.Key);
+                mMessages.AddRange(messageGroup);
+                await InsertMessages(mMessages, timestamp);
+                mMessages.Clear();
+            }
+            _running = false;
+        }
+
+        private async Task InsertMessages(
+            List<MqttMessage> messages,
+            MeasureTime timestamp)
+        {
+            var measureValues = new List<MeasureValue>();
+            foreach (var message in messages)
+            {
+                if (!message.TryGetFields(out var fields))
+                {
+                    _repo.DeleteMessage(message);
+                    continue;
+                }
+
+                if (!double.TryParse(message.Message, out var value))
+                {
+                    _repo.DeleteMessage(message);
+                    continue;
+                }
+
+                var room = _repo.GetRoom(fields[1]);
+                var measureType = _repo.GetMeasureType(fields[2]);
+                var sensorType = _repo.GetSensorType(fields[3]);
+
+                if (measureValues.FirstOrDefault(x =>
+                    x.RoomName == room.Name &&
+                    x.MeasureTimeTimestamp == timestamp.Timestamp &&
+                    x.MeasureTypeName == measureType.Name &&
+                    x.SensorTypeName == sensorType.Name) == null)
+                {
+                    var measureValue = new MeasureValue
+                    {
+                        MeasureTimeTimestamp = timestamp.Timestamp,
+                        RoomName = room.Name,
+                        Value = value,
+                        MeasureTypeName = measureType.Name,
+                        SensorTypeName = sensorType.Name
+                    };
+                    measureValues.Add(measureValue);
+                }
+                _repo.DeleteMessage(message);
+            }
+
+            _repo.AddMeasureValues(measureValues);
             await _repo.SaveChangesAsync();
-            Running = false;
+            measureValues.Clear();
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
