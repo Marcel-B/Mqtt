@@ -1,10 +1,8 @@
 using System;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using com.b_velop.Mqtt.Data.Contracts;
 using com.b_velop.Mqtt.Domain.Models;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MQTTnet.Server;
 
@@ -12,15 +10,14 @@ namespace com.b_velop.Mqtt.Application.Services
 {
     public class MqttServerApplicationMessageInterceptor : IMqttServerApplicationMessageInterceptor
     {
-        // private readonly IMqttRepository _repo;
+        private readonly IMqttRepository _repo;
         private readonly ILogger<MqttServerApplicationMessageInterceptor> _logger;
-        private IServiceProvider services;
 
         public MqttServerApplicationMessageInterceptor(
-            // IMqttRepository repo,
+            IMqttRepository repo,
             ILogger<MqttServerApplicationMessageInterceptor> logger)
         {
-            // _repo = repo;
+            _repo = repo;
             _logger = logger;
         }
 
@@ -33,7 +30,7 @@ namespace com.b_velop.Mqtt.Application.Services
             var payload = context.ApplicationMessage.Payload == null
                 ? null
                 : Encoding.UTF8.GetString(context.ApplicationMessage?.Payload);
-            
+
             if (context.ApplicationMessage.Retain)
             {
                 if (context.ApplicationMessage.Topic.StartsWith("mcu/"))
@@ -41,8 +38,6 @@ namespace com.b_velop.Mqtt.Application.Services
                     return;
                 }
 
-                var scope = services.CreateScope();
-                var _repo = scope.ServiceProvider.GetRequiredService<IMqttRepository>();
                 var msg = _repo.AddMessage(new MqttMessage
                 {
                     Created = DateTime.Now,
@@ -52,6 +47,7 @@ namespace com.b_velop.Mqtt.Application.Services
                 });
                 await _repo.SaveChangesAsync();
             }
+
             _logger.LogInformation(
                 $"Message: ClientId = {context.ClientId}, Topic = {context.ApplicationMessage?.Topic},"
                 + $" Payload = {payload}, QoS = {context.ApplicationMessage?.QualityOfServiceLevel},"

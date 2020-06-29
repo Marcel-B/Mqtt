@@ -14,6 +14,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mqtt.Domain", "Mqtt.Domain\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MQTTnet.AspNetCore", "MQTTnet.AspnetCore\MQTTnet.AspNetCore.csproj", "{EF26B482-F12E-41F0-8A0E-C01D94B1F254}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mqtt.MrSort", "Mqtt.MrSort\Mqtt.MrSort.csproj", "{8199DCCF-B8EC-4809-A5D4-C714E35B583A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mqtt.MrSort.Application", "Mqtt.MrSort.Application\Mqtt.MrSort.Application.csproj", "{AF8EA854-AF47-4C32-8EC1-951A04D2A50D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,5 +52,13 @@ Global
 		{EF26B482-F12E-41F0-8A0E-C01D94B1F254}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EF26B482-F12E-41F0-8A0E-C01D94B1F254}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EF26B482-F12E-41F0-8A0E-C01D94B1F254}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8199DCCF-B8EC-4809-A5D4-C714E35B583A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8199DCCF-B8EC-4809-A5D4-C714E35B583A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8199DCCF-B8EC-4809-A5D4-C714E35B583A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8199DCCF-B8EC-4809-A5D4-C714E35B583A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF8EA854-AF47-4C32-8EC1-951A04D2A50D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF8EA854-AF47-4C32-8EC1-951A04D2A50D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF8EA854-AF47-4C32-8EC1-951A04D2A50D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF8EA854-AF47-4C32-8EC1-951A04D2A50D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
