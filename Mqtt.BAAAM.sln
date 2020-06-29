@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mqtt.MrSort", "Mqtt.MrSort\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mqtt.MrSort.Application", "Mqtt.MrSort.Application\Mqtt.MrSort.Application.csproj", "{AF8EA854-AF47-4C32-8EC1-951A04D2A50D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mqtt.Shared", "Mqtt.Shared\Mqtt.Shared.csproj", "{C5CD6034-59C8-46BF-A489-836BA74837DF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,5 +62,9 @@ Global
 		{AF8EA854-AF47-4C32-8EC1-951A04D2A50D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AF8EA854-AF47-4C32-8EC1-951A04D2A50D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AF8EA854-AF47-4C32-8EC1-951A04D2A50D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5CD6034-59C8-46BF-A489-836BA74837DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5CD6034-59C8-46BF-A489-836BA74837DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5CD6034-59C8-46BF-A489-836BA74837DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5CD6034-59C8-46BF-A489-836BA74837DF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

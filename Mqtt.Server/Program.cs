@@ -6,6 +6,8 @@ using com.b_velop.Mqtt.Application.Services.Hosted;
 using com.b_velop.Mqtt.Context;
 using com.b_velop.Mqtt.Data.Contracts;
 using com.b_velop.Mqtt.Data.Repositories;
+using com.b_velop.Mqtt.Shared;
+using com.b_velop.Mqtt.Shared.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

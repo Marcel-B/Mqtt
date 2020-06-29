@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
-using com.b_velop.Mqtt.Application.Contracts;
-using com.b_velop.Mqtt.Application.Services;
-using com.b_velop.Mqtt.Application.Services.Hosted;
 using com.b_velop.Mqtt.Context;
+using com.b_velop.Mqtt.MrSort.Application.Services.Hosted;
+using com.b_velop.Mqtt.Shared;
+using com.b_velop.Mqtt.Shared.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Hosting;
 
-namespace Mqtt.MrSort
+namespace com.b_velop.Mqtt.MrSort
 {
     class Program
     {

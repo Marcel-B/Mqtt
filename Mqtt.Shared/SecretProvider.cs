@@ -1,9 +1,9 @@
 using System;
 using System.IO;
-using com.b_velop.Mqtt.Application.Contracts;
+using com.b_velop.Mqtt.Shared.Contracts;
 using Microsoft.Extensions.FileProviders;
 
-namespace com.b_velop.Mqtt.Application.Services
+namespace com.b_velop.Mqtt.Shared
 {
     public class SecretProvider : ISecretProvider
     {
