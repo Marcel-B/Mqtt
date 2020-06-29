@@ -20,14 +20,6 @@ namespace com.b_velop.Mqtt.MrSort
         static async Task Main(string[] args)
         {
             var host = CreateHostBuilder(args).Build();
-            // using (var scope = host.Services.CreateScope())
-            // {
-            //     var context = scope.ServiceProvider.GetRequiredService<DataContext>();
-            //     //context.Database.EnsureDeleted();
-            //     await context.Database.MigrateAsync();
-            //     await context.SaveChangesAsync();
-            // }
-
             await host.RunAsync();
         }
 

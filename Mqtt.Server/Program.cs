@@ -81,7 +81,6 @@ namespace com.b_velop.Mqtt.Server
                     });
                     
                     services.AddHostedService<MqttService>();
-                    // services.AddHostedService<InsertService>();
                 })
                 .ConfigureLogging(
                     logging =>
