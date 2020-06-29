@@ -40,24 +40,25 @@ namespace com.b_velop.Mqtt.Server
                 {
                     var configuration = hostContext.Configuration;
                     
-                    services.AddSingleton<IMqttServerOptions, MqttServerOptions>();
-                    services.AddSingleton<IMqttServerFactory, MqttFactory>();
-                    services.AddSingleton<IMqttServerStorage, MqttStorage>();
-                    services.AddSingleton<IMqttServerSubscriptionInterceptor, MqttServerSubscriptionInterceptor>();
+                    services.AddTransient<IMqttServerOptions, MqttServerOptions>();
+                    services.AddTransient<IMqttServerFactory, MqttFactory>();
+                    services.AddTransient<IMqttServerStorage, MqttStorage>();
+                    services.AddTransient<IMqttServerSubscriptionInterceptor, MqttServerSubscriptionInterceptor>();
                     
                     services
-                        .AddSingleton<IMqttServerApplicationMessageInterceptor, MqttServerApplicationMessageInterceptor
+                        .AddTransient<IMqttServerApplicationMessageInterceptor, MqttServerApplicationMessageInterceptor
                         >();
                     
-                    services.AddSingleton<IMqttServerConnectionValidator, MqttServerConnectionValidator>();
-                    services.AddSingleton<IServerBuilder, ServerBuilder>();
-                    services.AddSingleton<IMqttRepository, MqttRepository>();
+                    services.AddTransient<IMqttServerConnectionValidator, MqttServerConnectionValidator>();
+                    services.AddTransient<IServerBuilder, ServerBuilder>();
+                    services.AddTransient<IMqttRepository, MqttRepository>();
                     
                     ISecretProvider secretProvider = new SecretProvider();
                     services.AddSingleton(secretProvider);
                     
                     var stage = Environment.GetEnvironmentVariable("STAGE") ?? "";
                     var connectionString = string.Empty;
+                    
                     if (stage == "Development")
                     {
                         connectionString = configuration.GetConnectionString("postgres");
@@ -80,7 +81,7 @@ namespace com.b_velop.Mqtt.Server
                     });
                     
                     services.AddHostedService<MqttService>();
-                    services.AddHostedService<InsertService>();
+                    // services.AddHostedService<InsertService>();
                 })
                 .ConfigureLogging(
                     logging =>
