@@ -24,7 +24,7 @@ namespace com.b_velop.Mqtt.Data.Contracts
         Room GetRoom(string room);
         SensorType GetSensorType(string sensorType);
         MeasureType GetMeasureType(string measureType);
-        bool MeasureExsists(string roomName, string measureType, string sensorType, DateTime timestamp);
+        bool MeasureExists(string roomName, string measureType, string sensorType, DateTime timestamp);
         DateTime LastTimestamp();
         void AddMeasureValues(List<MeasureValue> measureValues);
     }
