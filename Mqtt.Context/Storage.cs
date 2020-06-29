@@ -47,6 +47,11 @@ namespace com.b_velop.Mqtt.Context
                 {
                     Name = "neo7m",
                     Created = DateTime.Now
+                },
+                new SensorType
+                {
+                    Name = "bme280",
+                    Created = DateTime.Now
                 }
             };
 
@@ -78,6 +83,11 @@ namespace com.b_velop.Mqtt.Context
                 {
                     Name = "mobilehome",
                     Created = DateTime.Now
+                },
+                new Room
+                {
+                    Name = "livingroom",
+                    Created = DateTime.Now,
                 }
             };
 
