@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using com.b_velop.Mqtt.Context;
+using com.b_velop.Mqtt.Data.Contracts;
+using com.b_velop.Mqtt.Data.Repositories;
 using com.b_velop.Mqtt.MrSort.Application.Services.Hosted;
 using com.b_velop.Mqtt.Shared;
 using com.b_velop.Mqtt.Shared.Contracts;
@@ -36,6 +38,7 @@ namespace com.b_velop.Mqtt.MrSort
 
                     ISecretProvider secretProvider = new SecretProvider();
                     services.AddSingleton(secretProvider);
+                    services.AddScoped<IMqttRepository, MqttRepository>();
 
                     var stage = Environment.GetEnvironmentVariable("STAGE") ?? "";
                     var connectionString = string.Empty;
