@@ -1,0 +1,80 @@
+version: '3.7'
+services:
+  mqtt:
+    image: millegalb/dotnet-mqtt:latest
+    networks:
+      - skynet
+    command: ["./wait-for-it.sh", "db:5432", "--", "python", "app.py"]
+    depends_on:
+      - postgres_mq
+    secrets:
+      - postgres_db_password
+    environment:
+      - database=mqttBase
+      - host=postgres_mq
+      - port=5432
+      - username=admin
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.tcp.routers.mqtt-tls.rule=HostSNI(`mqtt.qaybe.de`)"
+        - "traefik.tcp.routers.mqtt-tls.entrypoints=mq-tls"
+        - "traefik.tcp.routers.mqtt-tls.tls=true"
+        - "traefik.tcp.routers.mqtt-tls.service=mqtt-tls"
+        - "traefik.tcp.services.mqtt-tls.loadbalancer.server.port=8883"
+        
+        - "traefik.tcp.routers.mqtt.rule=HostSNI(`*`)"
+        - "traefik.tcp.routers.mqtt.entrypoints=mq"
+        - "traefik.tcp.routers.mqtt.service=mqtt"
+        - "traefik.tcp.services.mqtt.loadbalancer.server.port=8883"
+        
+  mr-sort:
+    image: millegalb/dotnet-mqtt-mrsort
+    networks:
+      - skynet
+    #command: ["./wait-for-it.sh", "db:5432", "--", "python", "app.py"]
+    depends_on:
+      - postgres_mq
+    secrets:
+      - postgres_db_password
+    environment:
+      - database=mqttBase
+      - host=postgres_mq
+      - port=5432
+      - username=admin
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+   
+  postgres_mq:
+    image: postgres:latest
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.hostname == titan.marcelbenders.de]
+    networks:
+      - skynet
+    environment:
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_db_password
+      - POSTGRES_USER=admin
+    volumes:
+      - postgres_mqtt:/var/lib/postgresql/data
+    secrets:
+      - postgres_db_password
+    ports:
+      - 5411:5432
+
+secrets:
+  postgres_db_password:
+    external: true      
+networks:
+  skynet:
+    external: true
+volumes:
+  postgres_mqtt:
