@@ -4,32 +4,28 @@ using com.b_velop.Mqtt.Application.Contracts;
 using com.b_velop.Mqtt.Application.Services;
 using com.b_velop.Mqtt.Application.Services.Hosted;
 using com.b_velop.Mqtt.Context;
-using com.b_velop.Mqtt.Data.Contracts;
-using com.b_velop.Mqtt.Data.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using MQTTnet;
-using MQTTnet.Server;
 using NLog.Extensions.Hosting;
 
-namespace com.b_velop.Mqtt.Server
+namespace Mqtt.MrSort
 {
     class Program
     {
         static async Task Main(string[] args)
         {
             var host = CreateHostBuilder(args).Build();
-            using (var scope = host.Services.CreateScope())
-            {
-                var context = scope.ServiceProvider.GetRequiredService<DataContext>();
-                //context.Database.EnsureDeleted();
-                await context.Database.MigrateAsync();
-                await context.SaveChangesAsync();
-                Storage.Seed(context);
-            }
+            // using (var scope = host.Services.CreateScope())
+            // {
+            //     var context = scope.ServiceProvider.GetRequiredService<DataContext>();
+            //     //context.Database.EnsureDeleted();
+            //     await context.Database.MigrateAsync();
+            //     await context.SaveChangesAsync();
+            // }
+
             await host.RunAsync();
         }
 
@@ -37,26 +33,13 @@ namespace com.b_velop.Mqtt.Server
             => Host.CreateDefaultBuilder(args).ConfigureServices((hostContext, services) =>
                 {
                     var configuration = hostContext.Configuration;
-                    
-                    services.AddSingleton<IMqttServerOptions, MqttServerOptions>();
-                    services.AddSingleton<IMqttServerFactory, MqttFactory>();
-                    services.AddSingleton<IMqttServerStorage, MqttStorage>();
-                    services.AddSingleton<IMqttServerSubscriptionInterceptor, MqttServerSubscriptionInterceptor>();
-                    
-                    services
-                        .AddSingleton<IMqttServerApplicationMessageInterceptor, MqttServerApplicationMessageInterceptor
-                        >();
-                    
-                    services.AddSingleton<IMqttServerConnectionValidator, MqttServerConnectionValidator>();
-                    services.AddSingleton<IServerBuilder, ServerBuilder>();
-                    services.AddSingleton<IMqttRepository, MqttRepository>();
-                    
+
                     ISecretProvider secretProvider = new SecretProvider();
                     services.AddSingleton(secretProvider);
-                    
+
                     var stage = Environment.GetEnvironmentVariable("STAGE") ?? "";
                     var connectionString = string.Empty;
-                    
+
                     if (stage == "Development")
                     {
                         connectionString = configuration.GetConnectionString("postgres");
@@ -70,6 +53,7 @@ namespace com.b_velop.Mqtt.Server
                         var pw = secretProvider.GetSecret("postgres_db_password");
                         connectionString = $"Host={host};Port={port};Username={username};Password={pw};Database={db};";
                     }
+
                     services.AddDbContext<DataContext>(options =>
                     {
                         options.UseNpgsql(connectionString);
@@ -77,9 +61,8 @@ namespace com.b_velop.Mqtt.Server
                         options.EnableDetailedErrors();
                         options.EnableServiceProviderCaching();
                     });
-                    
-                    services.AddHostedService<MqttService>();
-                    // services.AddHostedService<InsertService>();
+
+                    services.AddHostedService<InsertService>();
                 })
                 .ConfigureLogging(
                     logging =>
