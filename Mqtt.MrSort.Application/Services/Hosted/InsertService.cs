@@ -43,7 +43,7 @@ namespace com.b_velop.Mqtt.MrSort.Application.Services.Hosted
                 InsertValues,
                 true,
                 TimeSpan.FromSeconds(5),
-                TimeSpan.FromSeconds(3));
+                TimeSpan.FromMinutes(1));
 
             return Task.CompletedTask;
         }
@@ -99,6 +99,13 @@ namespace com.b_velop.Mqtt.MrSort.Application.Services.Hosted
 
                 var tmpTimestamp = message.Created.CutSeconds();
                 var timestamp = _repository.GetTimestamp(tmpTimestamp);
+                
+                if (timestamp == null)
+                {
+                    _logger.LogInformation($"Timestamp {tmpTimestamp.ToString()} not exist");
+                    continue;
+                }
+                
                 var room = _repository.GetRoom(fields[1]);
                 var measureType = _repository.GetMeasureType(fields[2]);
                 var sensorType = _repository.GetSensorType(fields[3]);
@@ -149,110 +156,9 @@ namespace com.b_velop.Mqtt.MrSort.Application.Services.Hosted
             {
                 _repository.DeleteMessage(dMessage);
             }
+            
             _ = await _repository.SaveChangesAsync();
-            //
-            // var lastTimestamp = _repository.LastTimestamp();
-            // var currentTimestamp = lastTimestamp.AddMinutes(1);
-            //
-            // while (currentTimestamp < DateTime.Now.CutSeconds())
-            // {
-            //     var timestamp = _repository.AddTimestamp(currentTimestamp);
-            //     currentTimestamp = timestamp.Timestamp.AddMinutes(1);
-            //
-            //     var messages = await
-            //         _repository.GetMessagesAsQueryable()
-            //             .Where(msg => msg.Created >= currentTimestamp && msg.Created < currentTimestamp.AddMinutes(1))
-            //             .Where(msg => msg.Topic.StartsWith("arduino"))
-            //             .Where(msg => !msg.Topic.EndsWith("neo7m"))
-            //             .ToListAsync();
-            //
-            //     await InsertMessages(_repository, messages, timestamp);
-            // }
-            //
-            // // Check if old messages are present
-            // var mqttMessages = await
-            //     _repository.GetMessagesAsQueryable()
-            //         .Where(msg => msg.Topic.StartsWith("arduino"))
-            //         .Where(msg => !msg.Topic.EndsWith("neo7m"))
-            //         .OrderBy(msg => msg.Created)
-            //         .ToListAsync();
-            //
-            // foreach (var message in mqttMessages)
-            // {
-            //     message.Created = message.Created.CutSeconds();
-            // }
-            //
-            // var newMessages =
-            //     from message in mqttMessages
-            //     group message by message.Created
-            //     into newGroup
-            //     orderby newGroup.Key
-            //     select newGroup;
-            //
-            // var mMessages = new List<MqttMessage>();
-            // foreach (var messageGroup in newMessages)
-            // {
-            //     var timestamp = _repository.GetTimestamp(messageGroup.Key);
-            //     mMessages.AddRange(messageGroup);
-            //     await InsertMessages(_repository, mMessages, timestamp);
-            //     mMessages.Clear();
-            // }
-
             _running = false;
-        }
-
-        private async Task InsertMessages(
-            IMqttRepository repo,
-            IEnumerable<MqttMessage> messages,
-            MeasureTime timestamp)
-        {
-            var measureValues = new List<MeasureValue>();
-            foreach (var message in messages)
-            {
-                if (!message.TryGetFields(out var fields))
-                {
-                    repo.DeleteMessage(message);
-                    continue;
-                }
-
-                if (!double.TryParse(message.Message, out var value))
-                {
-                    repo.DeleteMessage(message);
-                    continue;
-                }
-
-                var room = repo.GetRoom(fields[1]);
-                var measureType = repo.GetMeasureType(fields[2]);
-                var sensorType = repo.GetSensorType(fields[3]);
-
-                if (repo.MeasureExists(room.Name, measureType.Name, sensorType.Name, timestamp.Timestamp))
-                {
-                    repo.DeleteMessage(message);
-                }
-
-                if (measureValues.FirstOrDefault(x =>
-                    x.RoomName == room.Name &&
-                    x.MeasureTimeTimestamp == timestamp.Timestamp &&
-                    x.MeasureTypeName == measureType.Name &&
-                    x.SensorTypeName == sensorType.Name) == null)
-                {
-                    var measureValue = new MeasureValue
-                    {
-                        MeasureTimeTimestamp = timestamp.Timestamp,
-                        RoomName = room.Name,
-                        Value = value,
-                        MeasureTypeName = measureType.Name,
-                        SensorTypeName = sensorType.Name
-                    };
-                    measureValues.Add(measureValue);
-                }
-
-                repo.DeleteMessage(message);
-            }
-
-            repo.AddMeasureValues(measureValues);
-            await repo.SaveChangesAsync();
-            measureValues.Clear();
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
