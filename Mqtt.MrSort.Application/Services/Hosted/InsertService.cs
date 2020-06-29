@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using com.b_velop.Mqtt.Application.Helpers;
 using com.b_velop.Mqtt.Data.Contracts;
 using com.b_velop.Mqtt.Domain.Models;
+using com.b_velop.Mqtt.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace com.b_velop.Mqtt.Application.Services.Hosted
+namespace com.b_velop.Mqtt.MrSort.Application.Services.Hosted
 {
     public class InsertService : IHostedService
     {
@@ -58,7 +58,7 @@ namespace com.b_velop.Mqtt.Application.Services.Hosted
 
         private async void InsertValues(object state)
         {
-    
+
             if (_running)
             {
                 _logger.LogInformation(4444, $"Job is already running");
@@ -113,6 +113,7 @@ namespace com.b_velop.Mqtt.Application.Services.Hosted
                 await InsertMessages(repo, mMessages, timestamp);
                 mMessages.Clear();
             }
+
             _running = false;
         }
 
@@ -144,6 +145,7 @@ namespace com.b_velop.Mqtt.Application.Services.Hosted
                 {
                     repo.DeleteMessage(message);
                 }
+
                 if (measureValues.FirstOrDefault(x =>
                     x.RoomName == room.Name &&
                     x.MeasureTimeTimestamp == timestamp.Timestamp &&
